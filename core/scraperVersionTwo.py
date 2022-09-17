@@ -175,10 +175,11 @@ def scrape(request):
         ticker_value =  request.POST.get("ticker", "")
         market_value =  request.POST.get("market", "")
         download_type = request.POST.get("download_type", "")
-        scraper(ticker_value=ticker_value, market_value=market_value, download_type=download_type)
-        print("===========")
-        print(download_type)
-        print("===========")
+        if download_type == "INCOME_STATEMENT" or download_type == "BALANCE_SHEET" or download_type == "CASH_FLOW":
+            scraper(ticker_value=ticker_value, market_value=market_value, download_type=download_type)
+        elif download_type == "VALUATION_CASH_FLOW" or download_type == "VALUATION_GROWTH" or download_type == "VALUATION_FINANCIAL_HEALTH" or download_type == "VALUATION_OPERATING_EFFICIENCY":
+            scraper_valuation(ticker_value=ticker_value, market_value=market_value, download_type=download_type)
+
         if download_type == "INCOME_STATEMENT":
             with open(BASE_DIR + "/selenium/Income Statement_Annual_As Originally Reported.xls", 'rb') as file:
                 response = HttpResponse(file, content_type='application/vnd.ms-excel')
@@ -193,11 +194,81 @@ def scrape(request):
                     response = HttpResponse(file, content_type='application/vnd.ms-excel')
                     response['Content-Disposition'] = 'attachment; filename=stockData.xls'   
                     return response
+        elif download_type == "VALUATION_CASH_FLOW" or download_type == "VALUATION_GROWTH" or download_type == "VALUATION_FINANCIAL_HEALTH" or download_type == "VALUATION_OPERATING_EFFICIENCY":
+             pd.read_json("jsonfile.json").to_excel("output.xls")
+             with open("output.xlsx", 'rb') as file:
+                    response = HttpResponse(file, content_type='application/vnd.ms-excel')
+                    response['Content-Disposition'] = 'attachment; filename=stockData.xls'   
+                    return response
+        
         else:
             return render(request, "../templates/stockData.html")
     else:
         return render(request, "../templates/stockData.html")
 
+
+def scraper_valuation(ticker_value,market_value,download_type):
+    CHROME_DRIVER_PATH = BASE_DIR+"/chromedriver"
+    prefs = {'download.default_directory' :  BASE_DIR + "/selenium"}
+    chromeOptions = webdriver.ChromeOptions()
+    chromeOptions.add_experimental_option('prefs', prefs)
+    chromeOptions.add_argument("--disable-infobars")
+    chromeOptions.add_argument("--start-maximized")
+    chromeOptions.add_argument("--disable-extensions")
+    chromeOptions.add_argument('--window-size=1920,1080')
+    chromeOptions.add_argument("--headless")
+    chromeOptions.add_argument('--no-sandbox')   
+    chromeOptions.add_argument("--disable-dev-shm-usage") 
+    valuation_driver = webdriver.Chrome(executable_path=CHROME_DRIVER_PATH, chrome_options=chromeOptions)
+    # driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chromeOptions) 
+    valuation_driver.get(f"https://www.morningstar.com/stocks/{market_value}/{ticker_value}/valuation")
+    if download_type == "VALUATION_CASH_FLOW": 
+        WebDriverWait(valuation_driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Cash Flow')]"))).click()
+        data = WebDriverWait(valuation_driver, 10).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='sal-component-ctn sal-component-key-stats-financial-health sal-eqcss-key-stats-financial-health']"))).get_attribute("outerHTML")
+        df  = pd.read_html(data)    
+        df[0].to_json ('jsonfile.json', orient='records')
+        a_file = open("jsonfile.json", "r")
+        a_json = json.load(a_file)
+        pretty_json = json.dumps(a_json).replace("null", '"0"')
+        a_file.close()
+        sleep(5)
+        valuation_driver.quit()
+
+    elif download_type == "VALUATION_GROWTH": 
+        WebDriverWait(valuation_driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Growth')]"))).click()
+        data = WebDriverWait(valuation_driver, 10).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='sal-component-ctn sal-component-key-stats-financial-health sal-eqcss-key-stats-financial-health']"))).get_attribute("outerHTML")
+        df  = pd.read_html(data)    
+        df[0].to_json ('jsonfile.json', orient='records')
+        a_file = open("jsonfile.json", "r")
+        a_json = json.load(a_file)
+        pretty_json = json.dumps(a_json).replace("null", '"0"')
+        a_file.close()
+        sleep(5)
+        valuation_driver.quit()       
+
+    elif download_type == "VALUATION_FINANCIAL_HEALTH": 
+        WebDriverWait(valuation_driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Financial Health')]"))).click()
+        data = WebDriverWait(valuation_driver, 10).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='sal-component-ctn sal-component-key-stats-financial-health sal-eqcss-key-stats-financial-health']"))).get_attribute("outerHTML")
+        df  = pd.read_html(data)    
+        df[0].to_json ('jsonfile.json', orient='records')
+        a_file = open("jsonfile.json", "r")
+        a_json = json.load(a_file)
+        pretty_json = json.dumps(a_json).replace("null", '"0"')
+        a_file.close()
+        sleep(5)
+        valuation_driver.quit()      
+
+    elif download_type == "VALUATION_OPERATING_EFFICIENCY":
+        WebDriverWait(valuation_driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Operating and Efficiency')]"))).click()
+        data = WebDriverWait(valuation_driver, 10).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='sal-component-ctn sal-component-key-stats-financial-health sal-eqcss-key-stats-financial-health']"))).get_attribute("outerHTML")
+        df  = pd.read_html(data)    
+        df[0].to_json ('jsonfile.json', orient='records')
+        a_file = open("jsonfile.json", "r")
+        a_json = json.load(a_file)
+        pretty_json = json.dumps(a_json).replace("null", '"0"')
+        a_file.close()
+        sleep(5)
+        valuation_driver.quit()      
 
 
 
@@ -249,6 +320,8 @@ def scraper(ticker_value,market_value,download_type):
         WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Export Data')]"))).click()
         sleep(5)
         driver.quit()
+
+    
         
 
 
