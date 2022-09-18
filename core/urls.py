@@ -11,9 +11,6 @@ urlpatterns = [
     path('stock_history_all', historicalData.stock_history_all, name='home'),
     path('stock_history_key_ratio', historicalData.stock_history_key_ratio, name='home'),
     path('stockData', scraperVersionTwo.scrape, name='stockData'),
-    path('valuation', scraperVersionTwo.scrape_valuation, name='valuation'),
-    path('dividends', scraperVersionTwo.scrape_dividends, name='dividends'),
-    path('performance', scraperVersionTwo.scrape_operating_performance, name='performance'),
     path('stock_history_key_ratio_json', historicalData.stock_history_key_ratio_json, name='home'),
     ######TEST FOR JSON#######
       path('stock_history_json', historicalData.stock_history_json, name='home')
