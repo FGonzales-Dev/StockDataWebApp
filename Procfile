@@ -1,1 +1,1 @@
-web: gunicorn --workers=3 app:app --timeout 200 --log-file -
+web: gunicorn cb_dj_weather_app.wsgi --timeout 600 --log-file -
