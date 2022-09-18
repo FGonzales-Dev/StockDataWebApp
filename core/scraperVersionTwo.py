@@ -231,7 +231,7 @@ def scraper_valuation(ticker_value,market_value,download_type):
         a_json = json.load(a_file)
         pretty_json = json.dumps(a_json).replace("null", '"0"')
         a_file.close()
-        sleep(5)
+        sleep(10)
         valuation_driver.quit()
 
     elif download_type == "VALUATION_GROWTH": 
@@ -243,7 +243,7 @@ def scraper_valuation(ticker_value,market_value,download_type):
         a_json = json.load(a_file)
         pretty_json = json.dumps(a_json).replace("null", '"0"')
         a_file.close()
-        sleep(5)
+        sleep(10)
         valuation_driver.quit()       
 
     elif download_type == "VALUATION_FINANCIAL_HEALTH": 
@@ -267,7 +267,7 @@ def scraper_valuation(ticker_value,market_value,download_type):
         a_json = json.load(a_file)
         pretty_json = json.dumps(a_json).replace("null", '"0"')
         a_file.close()
-        sleep(5)
+        sleep(10)
         valuation_driver.quit()      
 
 
@@ -290,7 +290,7 @@ def scraper(ticker_value,market_value,download_type):
     if download_type == "INCOME_STATEMENT":
         WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//a[contains(., 'Expand Detail View')]"))).click()
         WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Export Data')]"))).click()
-        sleep(5)
+        sleep(10)
         driver.quit()
         
     elif download_type == "BALANCE_SHEET":
@@ -303,12 +303,12 @@ def scraper(ticker_value,market_value,download_type):
         WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Cash Flow')]"))).click()
         WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//a[contains(., 'Expand Detail View')]"))).click()
         WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Export Data')]"))).click()
-        sleep(5)
+        sleep(10)
         driver.quit()
     elif download_type == "ALL":
         WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//a[contains(., 'Expand Detail View')]"))).click()
         WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Export Data')]"))).click()
-        sleep(5)
+        sleep(10)
        
         WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Balance Sheet')]"))).click()
         # WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//a[contains(., 'Expand Detail View')]"))).click()
@@ -318,7 +318,7 @@ def scraper(ticker_value,market_value,download_type):
         WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Cash Flow')]"))).click()
         # WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//a[contains(., 'Expand Detail View')]"))).click()
         WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Export Data')]"))).click()
-        sleep(5)
+        sleep(10)
         driver.quit()
 
     
