@@ -13,7 +13,8 @@ urlpatterns = [
     path('stockData', scraperVersionTwo.scrape, name='stockData'),
     path('stock_history_key_ratio_json', historicalData.stock_history_key_ratio_json, name='home'),
     ######TEST FOR JSON#######
-      path('stock_history_json', historicalData.stock_history_json, name='home')
+      path('stock_history_json', historicalData.stock_history_json, name='home'),
+
     ######TEST FOR JSON#######
 ]
 

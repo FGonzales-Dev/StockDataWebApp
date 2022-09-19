@@ -130,3 +130,7 @@ STATIC_URL = '/static/'
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 django_heroku.settings(locals())
+
+# CELERY_BROKER_URL = 'redis://localhost:6379'
+
+CELERY_BROKER_URL = 'redis://:p3aceeb1ebd6c8d6d9a1cd13beeb676165563b65c543842c1281f070999f4a5aa@ec2-34-193-159-184.compute-1.amazonaws.com:23670'
