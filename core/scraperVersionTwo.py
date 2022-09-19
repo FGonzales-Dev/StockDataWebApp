@@ -79,10 +79,11 @@ def scrape(request):
                     response = HttpResponse(file, content_type='application/vnd.ms-excel')
                     response['Content-Disposition'] = 'attachment; filename=stockData.xls'   
                     return response
-    elif 'submit' in request.POST:
-        
+    elif 'get_data' in request.POST:
+        print("============================")
         if download_type == "INCOME_STATEMENT" or download_type == "BALANCE_SHEET" or download_type == "CASH_FLOW":
             scraper.delay(ticker_value=ticker_value, market_value=market_value, download_type=download_type)
+            return render(request, "../templates/stockData.html")
          
         elif download_type == "VALUATION_CASH_FLOW" or download_type == "VALUATION_GROWTH" or download_type == "VALUATION_FINANCIAL_HEALTH" or download_type == "VALUATION_OPERATING_EFFICIENCY":
             scraper_valuation(ticker_value=ticker_value, market_value=market_value, download_type=download_type)
