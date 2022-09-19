@@ -82,7 +82,7 @@ def scrape(request):
     elif 'submit' in request.POST:
         
         if download_type == "INCOME_STATEMENT" or download_type == "BALANCE_SHEET" or download_type == "CASH_FLOW":
-            data = scraper.delay(ticker_value=ticker_value, market_value=market_value, download_type=download_type)
+            scraper.delay(ticker_value=ticker_value, market_value=market_value, download_type=download_type)
          
         elif download_type == "VALUATION_CASH_FLOW" or download_type == "VALUATION_GROWTH" or download_type == "VALUATION_FINANCIAL_HEALTH" or download_type == "VALUATION_OPERATING_EFFICIENCY":
             scraper_valuation(ticker_value=ticker_value, market_value=market_value, download_type=download_type)
@@ -100,26 +100,26 @@ def scrape(request):
 
 
         
-        if download_type == "VALUATION_CASH_FLOW" or download_type == "VALUATION_GROWTH" or download_type == "VALUATION_FINANCIAL_HEALTH" or download_type == "VALUATION_OPERATING_EFFICIENCY" or download_type =="DIVIDENDS" or download_type == "OPERATING_PERFORMANCE":
-             pd.read_json("jsonfile.json").to_excel("output.xls")
-             with open("output.xls", 'rb') as file:
-                    response = HttpResponse(file, content_type='application/vnd.ms-excel')
-                    response['Content-Disposition'] = 'attachment; filename=stockData.xls'   
-                    return response
-        elif download_type == "ALL":
-            df1 = pd.read_excel(BASE_DIR + "/selenium/Balance Sheet_Annual_As Originally Reported.xls")
-            df2 = pd.read_excel(BASE_DIR + "/selenium/Cash Flow_Annual_As Originally Reported.xls")
-            df3 = pd.read_excel(BASE_DIR + "/selenium/Income Statement_Annual_As Originally Reported.xls")
-            writer = pd.ExcelWriter("all.xls", engine = 'xlsxwriter')
-            df1.to_excel(writer, sheet_name = 'BALANCE SHEET')
-            df2.to_excel(writer, sheet_name = 'CASH FLOW')
-            df3.to_excel(writer, sheet_name = 'INCOME STATEMENT')
-            writer.save()
-            writer.close()
-            with open("all.xls", 'rb') as file:
-                    response = HttpResponse(file, content_type='application/vnd.ms-excel')
-                    response['Content-Disposition'] = 'attachment; filename=stockData.xls'   
-                    return response
+        # if download_type == "VALUATION_CASH_FLOW" or download_type == "VALUATION_GROWTH" or download_type == "VALUATION_FINANCIAL_HEALTH" or download_type == "VALUATION_OPERATING_EFFICIENCY" or download_type =="DIVIDENDS" or download_type == "OPERATING_PERFORMANCE":
+        #      pd.read_json("jsonfile.json").to_excel("output.xls")
+        #      with open("output.xls", 'rb') as file:
+        #             response = HttpResponse(file, content_type='application/vnd.ms-excel')
+        #             response['Content-Disposition'] = 'attachment; filename=stockData.xls'   
+        #             return response
+        # elif download_type == "ALL":
+        #     df1 = pd.read_excel(BASE_DIR + "/selenium/Balance Sheet_Annual_As Originally Reported.xls")
+        #     df2 = pd.read_excel(BASE_DIR + "/selenium/Cash Flow_Annual_As Originally Reported.xls")
+        #     df3 = pd.read_excel(BASE_DIR + "/selenium/Income Statement_Annual_As Originally Reported.xls")
+        #     writer = pd.ExcelWriter("all.xls", engine = 'xlsxwriter')
+        #     df1.to_excel(writer, sheet_name = 'BALANCE SHEET')
+        #     df2.to_excel(writer, sheet_name = 'CASH FLOW')
+        #     df3.to_excel(writer, sheet_name = 'INCOME STATEMENT')
+        #     writer.save()
+        #     writer.close()
+        #     with open("all.xls", 'rb') as file:
+        #             response = HttpResponse(file, content_type='application/vnd.ms-excel')
+        #             response['Content-Disposition'] = 'attachment; filename=stockData.xls'   
+        #             return response
         else:
             return render(request, "../templates/stockData.html")
     else:
