@@ -87,17 +87,22 @@ def scrape(request):
          
         elif download_type == "VALUATION_CASH_FLOW" or download_type == "VALUATION_GROWTH" or download_type == "VALUATION_FINANCIAL_HEALTH" or download_type == "VALUATION_OPERATING_EFFICIENCY":
             scraper_valuation(ticker_value=ticker_value, market_value=market_value, download_type=download_type)
+            return render(request, "../templates/stockData.html")
         elif download_type =="DIVIDENDS":
             scraper_dividends(ticker_value=ticker_value, market_value=market_value)
+            return render(request, "../templates/stockData.html")
         elif download_type == "OPERATING_PERFORMANCE":
             scraper_operating_performance(ticker_value=ticker_value, market_value=market_value)
+            return render(request, "../templates/stockData.html")
         elif download_type == "ALL":
             scraper.delay(ticker_value=ticker_value, market_value=market_value, download_type="INCOME_STATEMENT")
             scraper.delay(ticker_value=ticker_value, market_value=market_value, download_type="BALANCE_SHEET")
             scraper.delay(ticker_value=ticker_value, market_value=market_value, download_type="CASH_FLOW")
-            # scraper_valuation(ticker_value=ticker_value, market_value=market_value, download_type=download_type)
-            # scraper_dividends(ticker_value=ticker_value, market_value=market_value)
-            # scraper_operating_performance(ticker_value=ticker_value, market_value=market_value)
+           
+            scraper_valuation(ticker_value=ticker_value, market_value=market_value, download_type=download_type)
+            scraper_dividends(ticker_value=ticker_value, market_value=market_value)
+            scraper_operating_performance(ticker_value=ticker_value, market_value=market_value)
+            return render(request, "../templates/stockData.html")
 
 
         
