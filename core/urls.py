@@ -1,3 +1,4 @@
+from xml.etree.ElementInclude import include
 from django.urls import path
 from core import historicalData, scraperVersionTwo, views
 
@@ -11,9 +12,15 @@ urlpatterns = [
     path('stock_history_all', historicalData.stock_history_all, name='home'),
     path('stock_history_key_ratio', historicalData.stock_history_key_ratio, name='home'),
     path('stockData', scraperVersionTwo.scrape, name='stockData'),
+    path('stockDataDownload', scraperVersionTwo.download, name='stockDataDownload'),
+
     path('stock_history_key_ratio_json', historicalData.stock_history_key_ratio_json, name='home'),
     ######TEST FOR JSON#######
       path('stock_history_json', historicalData.stock_history_json, name='home'),
+    
+
+      
+ 
 
     ######TEST FOR JSON#######
 ]
