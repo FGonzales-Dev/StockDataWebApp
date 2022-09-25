@@ -590,7 +590,7 @@ def stock_history_json(request):
             df.to_json ('jsonfile.json', orient='records')
             a_file = open("jsonfile.json", "r")
             a_json = json.load(a_file)
-            pretty_json = json.dumps(a_json).replace("null", '"0"')
+            pretty_json = json.dumps(a_json).replace('" ', '"')
             a_file.close()
             print(pretty_json)
             x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')

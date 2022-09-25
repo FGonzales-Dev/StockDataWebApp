@@ -11,10 +11,15 @@ import shutil
 from webdriver_manager.chrome import ChromeDriverManager
 from django.http import FileResponse
 from pathlib import Path
+import string
 
 from time import sleep
 from email import header
 from core.forms import getDataForm
+import xlsxwriter
+import openpyxl
+from openpyxl import workbook
+from openpyxl.styles import *
 
 
 from core.views import get_balance_sheet
@@ -61,27 +66,30 @@ def get_task_info(request):
 def download(request):
     return render(request, "../templates/loadScreen.html")
 
+
+
+
 def scrape(request):
     ticker_value =  request.POST.get("ticker", "")
     market_value =  request.POST.get("market", "")
     download_type = request.POST.get("download_type", "")
     download_type_get = request.GET.get("download_type", "")
     if 'download' in request.POST:
-        if download_type == "INCOME_STATEMENT":
-                pd.read_excel(BASE_DIR + "/selenium/Income Statement_Annual_As Originally Reported.xls", skiprows=list(range(1)))
-                with open(BASE_DIR + "/selenium/Income Statement_Annual_As Originally Reported.xls", 'rb') as file:
-                    response = HttpResponse(file, content_type='application/vnd.ms-excel')
-                    response['Content-Disposition'] = 'attachment; filename=stockData.xls'  
-                    return response
+        if download_type == "INCOME_STATEMENT": 
+            
+            with open("income_statement.xls", 'rb') as file:
+                        response = HttpResponse(file, content_type='application/vnd.ms-excel')
+                        response['Content-Disposition'] = 'attachment; filename=stockData.xls'  
+                        return response
         elif download_type == "BALANCE_SHEET":
-                pd.read_excel(BASE_DIR + "/selenium/Balance Sheet_Annual_As Originally Reported.xls", skiprows=list(range(1)))
-                with open(BASE_DIR + "/selenium/Balance Sheet_Annual_As Originally Reported.xls", 'rb') as file:
+                
+                with open("balance_sheet.xls", 'rb') as file:
                     response = HttpResponse(file, content_type='application/vnd.ms-excel')
                     response['Content-Disposition'] = 'attachment; filename=stockData.xls'  
                     return response
         elif download_type == "CASH_FLOW":
-                pd.read_excel(BASE_DIR + "/selenium/Cash Flow_Annual_As Originally Reported.xls", skiprows=list(range(1)))
-                with open(BASE_DIR + "/selenium/Cash Flow_Annual_As Originally Reported.xls", 'rb') as file:
+                         
+                with open("cash_flow.xls", 'rb') as file:
                         response = HttpResponse(file, content_type='application/vnd.ms-excel')
                         response['Content-Disposition'] = 'attachment; filename=stockData.xls'   
                         return response
@@ -96,38 +104,38 @@ def scrape(request):
                         response['Content-Disposition'] = 'attachment; filename=stockData.xls'   
                         return response
         elif download_type == "VALUATION_CASH_FLOW":
-                pd.read_excel("valuation_cash_flow.xls", skiprows=list(range(1)))
+                pd.read_excel("valuation_cash_flow.xls")
                 with open("valuation_cash_flow.xls", 'rb') as file:
                         response = HttpResponse(file, content_type='application/vnd.ms-excel')
                         response['Content-Disposition'] = 'attachment; filename=stockData.xls'   
                         return response
         elif download_type == "VALUATION_GROWTH":
-                pd.read_excel("valuation_growth.xls", skiprows=list(range(1)))
+                pd.read_excel("valuation_growth.xls")
                 with open("valuation_growth.xls", 'rb') as file:
                         response = HttpResponse(file, content_type='application/vnd.ms-excel')
                         response['Content-Disposition'] = 'attachment; filename=stockData.xls'   
                         return response
         elif download_type == "VALUATION_FINANCIAL_HEALTH":
-                pd.read_excel("valuation_financial_health.xls", skiprows=list(range(1)))
+                pd.read_excel("valuation_financial_health.xls")
                 with open("valuation_financial_health.xls", 'rb') as file:
                         response = HttpResponse(file, content_type='application/vnd.ms-excel')
                         response['Content-Disposition'] = 'attachment; filename=stockData.xls'   
                         return response
         elif download_type == "VALUATION_OPERATING_EFFICIENCY":
-                pd.read_excel("valuation_operating_efficiency.xls", skiprows=list(range(1)))
+                pd.read_excel("valuation_operating_efficiency.xls")
                 with open("valuation_operating_efficiency.xls", 'rb') as file:
                         response = HttpResponse(file, content_type='application/vnd.ms-excel')
                         response['Content-Disposition'] = 'attachment; filename=stockData.xls'   
                         return response
         elif download_type == "ALL":
-            df1 = pd.read_excel(BASE_DIR + "/selenium/Balance Sheet_Annual_As Originally Reported.xls", skiprows=list(range(1)))
-            df2 = pd.read_excel(BASE_DIR + "/selenium/Cash Flow_Annual_As Originally Reported.xls", skiprows=list(range(1)))
-            df3 = pd.read_excel(BASE_DIR + "/selenium/Income Statement_Annual_As Originally Reported.xls", skiprows=list(range(1)))
+            df1 = pd.read_excel("income_statement.xls")
+            df2 = pd.read_excel("balance_sheet.xls")
+            df3 = pd.read_excel("cash_flow.xls")
             df4 = pd.read_excel("dividends.xls")
-            df5 = pd.read_excel("valuation_cash_flow.xls", skiprows=list(range(1)))
-            df6 = pd.read_excel("valuation_growth.xls", skiprows=list(range(1)))
-            df7 = pd.read_excel("valuation_financial_health.xls", skiprows=list(range(1)))
-            df8 = pd.read_excel("valuation_operating_efficiency.xls", skiprows=list(range(1)))
+            df5 = pd.read_excel("valuation_cash_flow.xls")
+            df6 = pd.read_excel("valuation_growth.xls")
+            df7 = pd.read_excel("valuation_financial_health.xls")
+            df8 = pd.read_excel("valuation_operating_efficiency.xls")
             df9 = pd.read_excel("operating_performance.xls")
             
             writer = pd.ExcelWriter("all.xls", engine = 'xlsxwriter')
