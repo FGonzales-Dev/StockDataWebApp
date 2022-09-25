@@ -17,11 +17,15 @@ import pandas as pd
 from time import sleep
 
 
+
+
 @shared_task(bind=True)
-def scraper(self, ticker_value, market_value, download_type):
+def scraper(self,ticker_value,market_value,download_type):
+
+ 
 
     CHROME_DRIVER_PATH = BASE_DIR+"/chromedriver"
-    prefs = {'download.default_directory':  BASE_DIR + "/selenium"}
+    prefs = {'download.default_directory' :  BASE_DIR + "/selenium"}
     chromeOptions = webdriver.ChromeOptions()
     chromeOptions.add_experimental_option('prefs', prefs)
     chromeOptions.add_argument("--disable-infobars")
@@ -29,85 +33,39 @@ def scraper(self, ticker_value, market_value, download_type):
     chromeOptions.add_argument("--disable-extensions")
     chromeOptions.add_argument('--window-size=1920,1080')
     chromeOptions.add_argument("--headless")
-    chromeOptions.add_argument('--no-sandbox')
-    chromeOptions.add_argument("--disable-dev-shm-usage")
+    chromeOptions.add_argument('--no-sandbox')   
+    chromeOptions.add_argument("--disable-dev-shm-usage") 
     # driver = webdriver.Chrome(executable_path=CHROME_DRIVER_PATH, chrome_options=chromeOptions)
-    driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chromeOptions)
-    driver.get(
-        f"https://www.morningstar.com/stocks/{market_value}/{ticker_value}/financials")
+    driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chromeOptions) 
+    driver.get(f"https://www.morningstar.com/stocks/{market_value}/{ticker_value}/financials")
     if download_type == "INCOME_STATEMENT":
-
-        WebDriverWait(driver, 10).until(EC.element_to_be_clickable(
-            (By.XPATH, "//a[contains(., 'Expand Detail View')]"))).click()
-        WebDriverWait(driver, 10).until(EC.element_to_be_clickable(
-            (By.XPATH, "//button[contains(., 'Export Data')]"))).click()
-
-        data_xls = pd.read_excel(
-            BASE_DIR + "/selenium/Income Statement_Annual_As Originally Reported.xls")
-        data_xls.to_json('income_statement_test.json')
-        with open('income_statement_test.json', 'r') as file:
-            content = file.read()
-            clean = content.replace(' ', '')  # cleanup here
-            json_data = json.loads(clean)
-            file = json.dumps(json_data)
-            jsont = json.loads(file)
-            df = pd.DataFrame(data=jsont)
-            df.to_excel('income_statement.xls', index=False)
+        
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//a[contains(., 'Expand Detail View')]"))).click()
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Export Data')]"))).click()
         sleep(10)
         driver.quit()
-
         return 'DONE'
     elif download_type == "BALANCE_SHEET":
-        WebDriverWait(driver, 10).until(EC.element_to_be_clickable(
-            (By.XPATH, "//button[contains(., 'Balance Sheet')]"))).click()
-        WebDriverWait(driver, 10).until(EC.element_to_be_clickable(
-            (By.XPATH, "//a[contains(., 'Expand Detail View')]"))).click()
-        WebDriverWait(driver, 10).until(EC.element_to_be_clickable(
-            (By.XPATH, "//button[contains(., 'Export Data')]"))).click()
-
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Balance Sheet')]"))).click()
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//a[contains(., 'Expand Detail View')]"))).click()
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Export Data')]"))).click()
+       
         sleep(10)
         driver.quit()
-        data_xls = pd.read_excel(
-            BASE_DIR + "/selenium/Balance Sheet_Annual_As Originally Reported.xls")
-        data_xls.to_json('balance_sheet_test.json')
-        with open('balance_sheet_test.json', 'r') as file:
-            content = file.read()
-            clean = content.replace(' ', '')  # cleanup here
-            json_data = json.loads(clean)
-            file = json.dumps(json_data)
-            jsont = json.loads(file)
-            df = pd.DataFrame(data=jsont)
-            df.to_excel('balance_sheet.xls', index=False)
-
         return 'DONE'
     elif download_type == "CASH_FLOW":
-        WebDriverWait(driver, 10).until(EC.element_to_be_clickable(
-            (By.XPATH, "//button[contains(., 'Cash Flow')]"))).click()
-        WebDriverWait(driver, 10).until(EC.element_to_be_clickable(
-            (By.XPATH, "//a[contains(., 'Expand Detail View')]"))).click()
-        WebDriverWait(driver, 10).until(EC.element_to_be_clickable(
-            (By.XPATH, "//button[contains(., 'Export Data')]"))).click()
-
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Cash Flow')]"))).click()
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//a[contains(., 'Expand Detail View')]"))).click()
+        WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Export Data')]"))).click()
+       
         sleep(10)
         driver.quit()
-        data_xls = pd.read_excel(
-            BASE_DIR + "/selenium/Cash Flow_Annual_As Originally Reported.xls")
-        data_xls.to_json('cash_flow_test.json')
-        with open('cash_flow_test.json', 'r') as file:
-            content = file.read()
-            clean = content.replace(' ', '')  # cleanup here
-            json_data = json.loads(clean)
-            file = json.dumps(json_data)
-            jsont = json.loads(file)
-            df = pd.DataFrame(data=jsont)
-            df.to_excel('cash_flow.xls', index=False)
         return 'DONE'
-
 
 @shared_task()
 def scraper_operating_performance(ticker_value, market_value):
     CHROME_DRIVER_PATH = BASE_DIR+"/chromedriver"
-    prefs = {'download.default_directory':  BASE_DIR + "/selenium"}
+    prefs = {'download.default_directory' :  BASE_DIR + "/selenium"}
     chromeOptions = webdriver.ChromeOptions()
     chromeOptions.add_experimental_option('prefs', prefs)
     chromeOptions.add_argument("--disable-infobars")
@@ -115,32 +73,27 @@ def scraper_operating_performance(ticker_value, market_value):
     chromeOptions.add_argument("--disable-extensions")
     chromeOptions.add_argument('--window-size=1920,1080')
     chromeOptions.add_argument("--headless")
-    chromeOptions.add_argument('--no-sandbox')
-    chromeOptions.add_argument("--disable-dev-shm-usage")
-    # driver_operating_perfomance = webdriver.Chrome(executable_path=CHROME_DRIVER_PATH, chrome_options=chromeOptions)
-    driver_operating_perfomance = webdriver.Chrome(executable_path=os.environ.get(
-        "CHROMEDRIVER_PATH"), chrome_options=chromeOptions)
+    chromeOptions.add_argument('--no-sandbox')   
+    chromeOptions.add_argument("--disable-dev-shm-usage") 
+    driver_operating_perfomance = webdriver.Chrome(executable_path=CHROME_DRIVER_PATH, chrome_options=chromeOptions)
+    driver_operating_perfomance = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chromeOptions)
     # driver_operating_perfomance.get(f"https://www.morningstar.com/stocks/{market_value}/{ticker_value}/performance")
-    data = WebDriverWait(driver_operating_perfomance, 10).until(EC.visibility_of_element_located(
-        (By.XPATH, "//div[@class='mds-table__scroller__sal']"))).get_attribute("outerHTML")
-    data = WebDriverWait(driver_operating_perfomance, 10).until(EC.visibility_of_element_located(
-        (By.XPATH, "//div[@class='mds-table__scroller__sal']"))).get_attribute("outerHTML")
-    df = pd.read_html(data)
-    df[0].to_json('operating_performance.json', orient='records')
+    data = WebDriverWait(driver_operating_perfomance, 10).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='mds-table__scroller__sal']"))).get_attribute("outerHTML")
+    data = WebDriverWait(driver_operating_perfomance, 10).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='mds-table__scroller__sal']"))).get_attribute("outerHTML")
+    df  = pd.read_html(data)    
+    df[0].to_json ('operating_performance.json', orient='records')
     a_file = open("operating_performance.json", "r")
     a_file.close()
-    pd.read_json("operating_performance.json")
-    pd.read_json("operating_performance.json").to_excel(
-        'operating_performance.xls', index=False)
+    pd.read_json("operating_performance.json").to_excel('operating_performance.xls',index=False)
     sleep(5)
     driver_operating_perfomance.quit()
     return 'DONE'
 
 
 @shared_task()
-def scraper_dividends(ticker_value, market_value):
+def scraper_dividends(ticker_value,market_value):
     CHROME_DRIVER_PATH = BASE_DIR+"/chromedriver"
-    prefs = {'download.default_directory':  BASE_DIR + "/selenium"}
+    prefs = {'download.default_directory' :  BASE_DIR + "/selenium"}
     chromeOptions = webdriver.ChromeOptions()
     chromeOptions.add_experimental_option('prefs', prefs)
     chromeOptions.add_argument("--disable-infobars")
@@ -148,28 +101,25 @@ def scraper_dividends(ticker_value, market_value):
     chromeOptions.add_argument("--disable-extensions")
     chromeOptions.add_argument('--window-size=1920,1080')
     chromeOptions.add_argument("--headless")
-    chromeOptions.add_argument('--no-sandbox')
-    chromeOptions.add_argument("--disable-dev-shm-usage")
+    chromeOptions.add_argument('--no-sandbox')   
+    chromeOptions.add_argument("--disable-dev-shm-usage") 
     # driver_dividends = webdriver.Chrome(executable_path=CHROME_DRIVER_PATH, chrome_options=chromeOptions)
     driver_dividends = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chromeOptions)
-    driver_dividends.get(
-        f"https://www.morningstar.com/stocks/{market_value}/{ticker_value}/dividends")
-    data = WebDriverWait(driver_dividends, 10).until(EC.visibility_of_element_located(
-        (By.XPATH, "//div[@class='mds-table__scroller__sal']"))).get_attribute("outerHTML")
-    df = pd.read_html(data)
-    df[0].to_json('dividends.json', orient='records')
+    driver_dividends.get(f"https://www.morningstar.com/stocks/{market_value}/{ticker_value}/dividends")
+    data = WebDriverWait(driver_dividends, 10).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='mds-table__scroller__sal']"))).get_attribute("outerHTML")
+    df  = pd.read_html(data)    
+    df[0].to_json ('dividends.json', orient='records')
     a_file = open("dividends.json", "r")
     a_file.close()
-    pd.read_json("dividends.json").to_excel('dividends.xls', index=False)
+    pd.read_json("dividends.json").to_excel('dividends.xls',index=False)
     sleep(5)
     driver_dividends.quit()
     return 'DONE'
 
-
 @shared_task()
-def scraper_valuation(ticker_value, market_value, download_type):
+def scraper_valuation(ticker_value,market_value,download_type):
     CHROME_DRIVER_PATH = BASE_DIR+"/chromedriver"
-    prefs = {'download.default_directory':  BASE_DIR + "/selenium"}
+    prefs = {'download.default_directory' :  BASE_DIR + "/selenium"}
     chromeOptions = webdriver.ChromeOptions()
     chromeOptions.add_experimental_option('prefs', prefs)
     chromeOptions.add_argument("--disable-infobars")
@@ -177,74 +127,63 @@ def scraper_valuation(ticker_value, market_value, download_type):
     chromeOptions.add_argument("--disable-extensions")
     chromeOptions.add_argument('--window-size=1920,1080')
     chromeOptions.add_argument("--headless")
-    chromeOptions.add_argument('--no-sandbox')
-    chromeOptions.add_argument("--disable-dev-shm-usage")
+    chromeOptions.add_argument('--no-sandbox')   
+    chromeOptions.add_argument("--disable-dev-shm-usage") 
     # valuation_driver = webdriver.Chrome(executable_path=CHROME_DRIVER_PATH, chrome_options=chromeOptions)
-    valuation_driver = webdriver.Chrome(executable_path=os.environ.get(
-        "CHROMEDRIVER_PATH"), chrome_options=chromeOptions)
-    valuation_driver.get(
-        f"https://www.morningstar.com/stocks/{market_value}/{ticker_value}/valuation")
-    if download_type == "VALUATION_CASH_FLOW":
-        valuation_driver.get(
-            f"https://www.morningstar.com/stocks/{market_value}/{ticker_value}/valuation")
-        WebDriverWait(valuation_driver, 10).until(EC.element_to_be_clickable(
-            (By.XPATH, "//button[contains(., 'Cash Flow')]"))).click()
-        data = WebDriverWait(valuation_driver, 10).until(EC.visibility_of_element_located(
-            (By.XPATH, "//div[@class='sal-component-ctn sal-component-key-stats-cash-flow sal-eqcss-key-stats-cash-flow']"))).get_attribute("outerHTML")
-        df = pd.read_html(data)
-        df[0].to_json('valuation_cash_flow.json', orient='records')
+    valuation_driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chromeOptions) 
+    valuation_driver.get(f"https://www.morningstar.com/stocks/{market_value}/{ticker_value}/valuation")
+    if download_type == "VALUATION_CASH_FLOW": 
+        valuation_driver.get(f"https://www.morningstar.com/stocks/{market_value}/{ticker_value}/valuation")
+        WebDriverWait(valuation_driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Cash Flow')]"))).click()
+        data = WebDriverWait(valuation_driver, 10).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='sal-component-ctn sal-component-key-stats-cash-flow sal-eqcss-key-stats-cash-flow']"))).get_attribute("outerHTML")
+        df  = pd.read_html(data)    
+        df[0].to_json ('valuation_cash_flow.json', orient='records')
         a_file = open("valuation_cash_flow.json", "r")
         a_json = json.load(a_file)
         a_file.close()
-        pd.read_json("valuation_cash_flow.json").to_excel(
-            'valuation_cash_flow.xls', index=False)
+        pd.read_json("valuation_cash_flow.json").to_excel('valuation_cash_flow.xls',index=False)
         sleep(5)
-        valuation_driver.quit()
-        return 'DONE'
+        valuation_driver.quit()   
+        return 'DONE' 
 
-    elif download_type == "VALUATION_GROWTH":
-        WebDriverWait(valuation_driver, 10).until(EC.element_to_be_clickable(
-            (By.XPATH, "//button[contains(., 'Growth')]"))).click()
-        data = WebDriverWait(valuation_driver, 10).until(EC.visibility_of_element_located(
-            (By.XPATH, "//div[@class='sal-component-ctn sal-component-key-stats-growth-table sal-eqcss-key-stats-growth-table']"))).get_attribute("outerHTML")
-        df = pd.read_html(data)
-        df[0].to_json('valuation_growth.json', orient='records')
+    elif download_type == "VALUATION_GROWTH": 
+        WebDriverWait(valuation_driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Growth')]"))).click()
+        data = WebDriverWait(valuation_driver, 10).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='sal-component-ctn sal-component-key-stats-growth-table sal-eqcss-key-stats-growth-table']"))).get_attribute("outerHTML")
+        df  = pd.read_html(data)    
+        df[0].to_json ('valuation_growth.json', orient='records')
         a_file = open("valuation_growth.json", "r")
         a_json = json.load(a_file)
         a_file.close()
-        pd.read_json("valuation_growth.json").to_excel(
-            'valuation_growth.xls', index=False)
+        pd.read_json("valuation_growth.json").to_excel('valuation_growth.xls',index=False)
         sleep(5)
-        valuation_driver.quit()
-        return 'DONE'
+        valuation_driver.quit() 
+        return 'DONE'      
 
-    elif download_type == "VALUATION_FINANCIAL_HEALTH":
-        WebDriverWait(valuation_driver, 10).until(EC.element_to_be_clickable(
-            (By.XPATH, "//button[contains(., 'Financial Health')]"))).click()
-        data = WebDriverWait(valuation_driver, 10).until(EC.visibility_of_element_located(
-            (By.XPATH, "//div[@class='sal-component-ctn sal-component-key-stats-financial-health sal-eqcss-key-stats-financial-health']"))).get_attribute("outerHTML")
-        df = pd.read_html(data)
-        df[0].to_json('valuation_financial_health.json', orient='records')
+        
+
+    elif download_type == "VALUATION_FINANCIAL_HEALTH": 
+        WebDriverWait(valuation_driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Financial Health')]"))).click()
+        data = WebDriverWait(valuation_driver, 10).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='sal-component-ctn sal-component-key-stats-financial-health sal-eqcss-key-stats-financial-health']"))).get_attribute("outerHTML")
+        df  = pd.read_html(data)    
+        df[0].to_json ('valuation_financial_health.json', orient='records')
         a_file = open("valuation_financial_health.json", "r")
         a_json = json.load(a_file)
         a_file.close()
-        pd.read_json("valuation_financial_health.json").to_excel(
-            'valuation_financial_health.xls', index=False)
+        pd.read_json("valuation_financial_health.json").to_excel('valuation_financial_health.xls',index=False)
         sleep(5)
-        valuation_driver.quit()
-        return 'DONE'
+        valuation_driver.quit()  
+        return 'DONE'    
 
     elif download_type == "VALUATION_OPERATING_EFFICIENCY":
-        WebDriverWait(valuation_driver, 10).until(EC.element_to_be_clickable(
-            (By.XPATH, "//button[contains(., 'Operating and Efficiency')]"))).click()
-        data = WebDriverWait(valuation_driver, 10).until(EC.visibility_of_element_located(
-            (By.XPATH, "//div[@class='sal-component-ctn sal-component-key-stats-oper-efficiency sal-eqcss-key-stats-oper-efficiency']"))).get_attribute("outerHTML")
-        df = pd.read_html(data)
-        df[0].to_json('valuation_operating_efficiency.json', orient='records')
+        WebDriverWait(valuation_driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Operating and Efficiency')]"))).click()
+        data = WebDriverWait(valuation_driver, 10).until(EC.visibility_of_element_located((By.XPATH, "//div[@class='sal-component-ctn sal-component-key-stats-oper-efficiency sal-eqcss-key-stats-oper-efficiency']"))).get_attribute("outerHTML")
+        df  = pd.read_html(data)    
+        df[0].to_json ('valuation_operating_efficiency.json', orient='records')
         a_file = open("valuation_operating_efficiency.json", "r")
         a_json = json.load(a_file)
-        pd.read_json("valuation_operating_efficiency.json").to_excel(
-            'valuation_operating_efficiency.xls', index=False)
+        pd.read_json("valuation_operating_efficiency.json").to_excel('valuation_operating_efficiency.xls',index=False)
         a_file.close()
         sleep(5)
-        valuation_driver.quit()
+        valuation_driver.quit()      
+
+
