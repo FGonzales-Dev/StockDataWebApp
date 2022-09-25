@@ -173,7 +173,7 @@ def scrape(request):
             scraper_valuation.delay(ticker_value=ticker_value, market_value=market_value, download_type="VALUATION_FINANCIAL_HEALTH")
             scraper_valuation.delay(ticker_value=ticker_value, market_value=market_value, download_type="VALUATION_OPERATING_EFFICIENCY")
             task = scraper_dividends.delay(ticker_value=ticker_value, market_value=market_value)
-            return render(request, "../templates/loadd_screen_all.html",{ "download_type": download_type,"task_id": task.id, "task_stat": task.status})
+            return render(request, "../templates/load_screen_all.html",{ "download_type": download_type,"task_id": task.id, "task_stat": task.status})
         else:
             return render(request, "../templates/stockData.html")
     else:
