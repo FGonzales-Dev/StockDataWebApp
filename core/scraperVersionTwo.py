@@ -1,4 +1,5 @@
 
+from operator import index
 import os
 from zlib import DEF_BUF_SIZE
 from selenium import webdriver
@@ -198,15 +199,15 @@ def scrape(request):
             df9 = pd.read_excel("operating_performance.xls")
             
             writer = pd.ExcelWriter("all.xls", engine = 'xlsxwriter')
-            df1.to_excel(writer, sheet_name = 'BALANCE SHEET')
-            df2.to_excel(writer, sheet_name = 'CASH FLOW')
-            df3.to_excel(writer, sheet_name = 'INCOME STATEMENT')
-            df5.to_excel(writer, sheet_name = 'VALUATION CASH FLOW')
-            df6.to_excel(writer, sheet_name = 'VALUATION GROWTH')
-            df7.to_excel(writer, sheet_name = 'VALUATION FINANCIAL HEALTH')
-            df8.to_excel(writer, sheet_name = 'VALUATION OPERATING EFFICIENCY')
-            df4.to_excel(writer, sheet_name = 'DIVIDENDS')
-            df9.to_excel(writer,sheet_name="OPERATING PERFORMANCE")
+            df1.to_excel(writer, sheet_name = 'BALANCE SHEET', index=False)
+            df2.to_excel(writer, sheet_name = 'CASH FLOW', index=False)
+            df3.to_excel(writer, sheet_name = 'INCOME STATEMENT', index=False)
+            df5.to_excel(writer, sheet_name = 'VALUATION CASH FLOW', index=False)
+            df6.to_excel(writer, sheet_name = 'VALUATION GROWTH', index=False)
+            df7.to_excel(writer, sheet_name = 'VALUATION FINANCIAL HEALTH', index=False)
+            df8.to_excel(writer, sheet_name = 'VALUATION OPERATING EFFICIENCY', index=False)
+            df4.to_excel(writer, sheet_name = 'DIVIDENDS', index=False)
+            df9.to_excel(writer,sheet_name="OPERATING PERFORMANCE", index=False)
             writer.save()
             writer.close()
             
@@ -240,6 +241,7 @@ def scrape(request):
             scraper_valuation.delay(ticker_value=ticker_value, market_value=market_value, download_type="VALUATION_GROWTH")
             scraper_valuation.delay(ticker_value=ticker_value, market_value=market_value, download_type="VALUATION_FINANCIAL_HEALTH")
             scraper_valuation.delay(ticker_value=ticker_value, market_value=market_value, download_type="VALUATION_OPERATING_EFFICIENCY")
+            scraper_operating_performance.delay(ticker_value=ticker_value, market_value=market_value)
             task = scraper_dividends.delay(ticker_value=ticker_value, market_value=market_value)
             return render(request, "../templates/load_screen_all.html",{ "download_type": download_type,"task_id": task.id, "task_stat": task.status})
         else:
