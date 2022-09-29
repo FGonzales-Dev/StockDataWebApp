@@ -49,7 +49,15 @@ from register.models import Profile
 from django.contrib.auth.models import User
 from .tasks import *
 from celery.result import AsyncResult
+from celery import chain, chord,group
 
+valuation_cash_flow_id: None
+valuation_growth_id: None
+valuation_financial_health_id : None
+valuation_operating_efficiency_id : None
+operating_performance_task_id : None
+dividends_task_id : None
+result_task : None
 
 def get_task_info(request):
     task_id = request.GET.get('task_id', None)
@@ -71,17 +79,106 @@ def download(request):
 
 
 def scrape(request):
+    
     ticker_value =  request.POST.get("ticker", "")
     market_value =  request.POST.get("market", "")
     download_type = request.POST.get("download_type", "")
     task_id = request.POST.get("task_id", "")
-    valuation_cash_flow_id = request.POST.get("valuation_cash_flow_id", "")
-    valuation_growth_id = request.POST.get("valuation_growth_id", "")
-    valuation_financial_health_id = request.POST.get("valuation_financial_health_id", "")
-    valuation_operating_efficiency_id = request.POST.get("valuation_operating_efficiency_id", "")
-    operating_performance_task_id = request.POST.get("operating_performance_task_id", "")
-    dividends_task_id = request.POST.get("dividends_task_id", "")
-    if 'download' in request.POST:
+   
+   
+
+
+    if 'get_data' in request.POST:
+        print("============================")
+        if download_type == "INCOME_STATEMENT" or download_type == "BALANCE_SHEET" or download_type == "CASH_FLOW":
+            CHROME_DRIVER_PATH = BASE_DIR+"/chromedriver"
+            prefs = {'download.default_directory' :  BASE_DIR}
+            chromeOptions = webdriver.ChromeOptions()
+            chromeOptions.add_experimental_option('prefs', prefs)
+            chromeOptions.add_argument('--headless')
+            chromeOptions.add_argument('--disable-setuid-sandbox')
+            chromeOptions.add_argument('--remote-debugging-port=9222')
+            chromeOptions.add_argument('--disable-extensions')
+            chromeOptions.add_argument('start-maximized')
+            chromeOptions.add_argument('--disable-gpu')
+            chromeOptions.add_argument('--no-sandbox')
+            chromeOptions.add_argument('--disable-dev-shm-usage')
+            # driver = webdriver.Chrome(executable_path=CHROME_DRIVER_PATH, chrome_options=chromeOptions)
+            driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chromeOptions) 
+            driver.get(f"https://www.morningstar.com/stocks/{market_value}/{ticker_value}/financials")
+        elif download_type == "INCOME_STATEMENT":
+                WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Income Statement')]"))).click()
+                WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//a[contains(., 'Expand Detail View')]"))).click()
+                WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Export Data')]"))).click()
+                sleep(10)
+                driver.quit()
+                return render(request, "../templates/loadScreen.html",{ "download_type": download_type})
+        elif download_type == "BALANCE_SHEET":
+                WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Balance Sheet')]"))).click()
+                WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//a[contains(., 'Expand Detail View')]"))).click()
+                WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Export Data')]"))).click()
+                sleep(10)
+                driver.quit()
+                return render(request, "../templates/loadScreen.html",{ "download_type": download_type})
+        elif download_type == "CASH_FLOW":
+                WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Cash Flow')]"))).click()
+                WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//a[contains(., 'Expand Detail View')]"))).click()
+                WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Export Data')]"))).click()
+                sleep(10)
+                driver.quit()
+                return render(request, "../templates/loadScreen.html",{ "download_type": download_type})
+        elif download_type == "VALUATION_CASH_FLOW" or download_type == "VALUATION_GROWTH" or download_type == "VALUATION_FINANCIAL_HEALTH" or download_type == "VALUATION_OPERATING_EFFICIENCY":
+            task = scraper_valuation.delay(ticker_value=ticker_value, market_value=market_value, download_type=download_type)
+            return render(request, "../templates/loadScreen.html",{ "download_type": download_type,"task_id": task.id, "task_stat": task.status})
+        elif download_type =="DIVIDENDS":
+            task = scraper_dividends.delay(ticker_value=ticker_value, market_value=market_value)
+            return render(request, "../templates/loadScreen.html",{ "download_type": download_type,"task_id": task.id, "task_stat": task.status})
+        elif download_type == "OPERATING_PERFORMANCE":
+            task =scraper_operating_performance.delay(ticker_value=ticker_value, market_value=market_value)
+            return render(request, "../templates/loadScreen.html",{ "download_type": download_type,"task_id": task.id, "task_stat": task.status})
+        elif download_type == "ALL":
+            
+            
+            global result_task
+            global operating_performance_task_id
+            global dividends_task_id
+
+            
+        
+
+            
+
+        
+           
+
+            CHROME_DRIVER_PATH = BASE_DIR+"/chromedriver"
+            prefs = {'download.default_directory' :  BASE_DIR}
+            chromeOptions = webdriver.ChromeOptions()
+            chromeOptions.add_experimental_option('prefs', prefs)
+            chromeOptions.add_argument("--disable-infobars")
+            chromeOptions.add_argument("--start-maximized")
+            chromeOptions.add_argument("--disable-extensions")
+            chromeOptions.add_argument('--window-size=1920,1080')
+            chromeOptions.add_argument("--headless")
+            chromeOptions.add_argument('--no-sandbox')   
+            chromeOptions.add_argument("--disable-dev-shm-usage")
+            # driver = webdriver.Chrome(executable_path=CHROME_DRIVER_PATH, chrome_options=chromeOptions)
+            driver = webdriver.Chrome(  chrome_options=chromeOptions, executable_path=ChromeDriverManager().install()) 
+            driver.get(f"https://www.morningstar.com/stocks/{market_value}/{ticker_value}/financials")
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Income Statement')]"))).click()
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//a[contains(., 'Expand Detail View')]"))).click()
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Export Data')]"))).click()
+            sleep(5)
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Balance Sheet')]"))).click()
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Export Data')]"))).click()
+            sleep(5)
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Cash Flow')]"))).click()
+            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Export Data')]"))).click()
+            sleep(5)
+            driver.quit()
+            return render(request, "../templates/load_screen_all.html",{ "download_type": download_type})
+
+    elif 'download' in request.POST:
         if download_type == "INCOME_STATEMENT": 
             data_xls = pd.read_excel(BASE_DIR + "/Income Statement_Annual_As Originally Reported.xls")
             data_xls.to_json('income_statement_test.json')
@@ -128,14 +225,7 @@ def scrape(request):
                         response['Content-Disposition'] = 'attachment; filename=stockData.xls'   
                         return response
         elif download_type == "DIVIDENDS":
-            print("***********************")
-            print(task_id)
-            print("xxxxxxxxxxxxxxxx")
             res = AsyncResult(task_id).get()
-           
-            print(res)
-           
-            print("***********************")
             df = pd.read_json(res)
             df.to_excel('dividends.xls', index=False)
             with open("dividends.xls", 'rb') as file:
@@ -183,29 +273,29 @@ def scrape(request):
                         response['Content-Disposition'] = 'attachment; filename=stockData.xls'   
                         return response
         elif download_type == "ALL":
-            dividends = AsyncResult(dividends_task_id).get()
-            dividends_df = pd.read_json(dividends)
-            dividends_df.to_excel('dividends.xls', index=False)
+            # dividends = AsyncResult(dividends_task_id).get()
+            # dividends_df = pd.read_json(dividends)
+            # dividends_df.to_excel('dividends.xls', index=False)
 
-            operating_performance = AsyncResult(operating_performance_task_id).get()
-            operating_performance_df = pd.read_json(operating_performance)
-            operating_performance_df.to_excel('operating_performance.xls', index=False)
+            # operating_performance = AsyncResult(operating_performance_task_id).get()
+            # operating_performance_df = pd.read_json(operating_performance)
+            # operating_performance_df.to_excel('operating_performance.xls', index=False)
 
-            valuation_cash_flow = AsyncResult(valuation_cash_flow_id).get()
-            valuation_cash_flow_df = pd.read_json(valuation_cash_flow)
-            valuation_cash_flow_df.to_excel('valuation_cash_flow.xls', index=False)
+            # valuation_cash_flow = AsyncResult(valuation_cash_flow_id).get()
+            # valuation_cash_flow_df = pd.read_json(valuation_cash_flow)
+            # valuation_cash_flow_df.to_excel('valuation_cash_flow.xls', index=False)
 
-            valuation_growth = AsyncResult(valuation_growth_id).get()
-            valuation_growth_df = pd.read_json(valuation_growth)
-            valuation_growth_df.to_excel('valuation_growth.xls', index=False)
+            # valuation_growth = AsyncResult(valuation_growth_id).get()
+            # valuation_growth_df = pd.read_json(valuation_growth)
+            # valuation_growth_df.to_excel('valuation_growth.xls', index=False)
             
-            valuation_financial_health = AsyncResult(valuation_financial_health_id).get()
-            valuation_financial_health_df = pd.read_json(valuation_financial_health)
-            valuation_financial_health_df.to_excel('valuation_financial_health.xls', index=False)
+            # valuation_financial_health = AsyncResult(valuation_financial_health_id).get()
+            # valuation_financial_health_df = pd.read_json(valuation_financial_health)
+            # valuation_financial_health_df.to_excel('valuation_financial_health.xls', index=False)
 
-            valuation_operating_efficiency = AsyncResult(valuation_operating_efficiency_id).get()
-            valuation_operating_efficiency_df = pd.read_json(valuation_operating_efficiency)
-            valuation_operating_efficiency_df.to_excel('valuation_operating_efficiency.xls', index=False)
+            # valuation_operating_efficiency = AsyncResult(valuation_operating_efficiency_id).get()
+            # valuation_operating_efficiency_df = pd.read_json(valuation_operating_efficiency)
+            # valuation_operating_efficiency_df.to_excel('valuation_operating_efficiency.xls', index=False)
 
             data_xls = pd.read_excel(BASE_DIR + "/Balance Sheet_Annual_As Originally Reported.xls")
             data_xls.to_json('balance_sheet_test.json')
@@ -241,23 +331,23 @@ def scrape(request):
                         df = pd.DataFrame(data=jsont)
                         df.to_excel('income_statement.xls',index=False)
                         df3 = pd.read_excel('income_statement.xls')
-            df4 = pd.read_excel("dividends.xls")
-            df5 = pd.read_excel("valuation_cash_flow.xls")
-            df6 = pd.read_excel("valuation_growth.xls")
-            df7 = pd.read_excel("valuation_financial_health.xls")
-            df8 = pd.read_excel("valuation_operating_efficiency.xls")
-            df9 = pd.read_excel("operating_performance.xls")
+            # df4 = pd.read_excel("dividends.xls")
+            # df5 = pd.read_excel("valuation_cash_flow.xls")
+            # df6 = pd.read_excel("valuation_growth.xls")
+            # df7 = pd.read_excel("valuation_financial_health.xls")
+            # df8 = pd.read_excel("valuation_operating_efficiency.xls")
+            # df9 = pd.read_excel("operating_performance.xls")
             
             writer = pd.ExcelWriter("all.xls", engine = 'xlsxwriter')
             df1.to_excel(writer, sheet_name = 'BALANCE SHEET', index=False)
             df2.to_excel(writer, sheet_name = 'CASH FLOW', index=False)
             df3.to_excel(writer, sheet_name = 'INCOME STATEMENT', index=False)
-            df5.to_excel(writer, sheet_name = 'VALUATION CASH FLOW', index=False)
-            df6.to_excel(writer, sheet_name = 'VALUATION GROWTH', index=False)
-            df7.to_excel(writer, sheet_name = 'VALUATION FINANCIAL HEALTH', index=False)
-            df8.to_excel(writer, sheet_name = 'VALUATION OPERATING EFFICIENCY', index=False)
-            df4.to_excel(writer, sheet_name = 'DIVIDENDS', index=False)
-            df9.to_excel(writer,sheet_name="OPERATING PERFORMANCE", index=False)
+            # df5.to_excel(writer, sheet_name = 'VALUATION CASH FLOW', index=False)
+            # df6.to_excel(writer, sheet_name = 'VALUATION GROWTH', index=False)
+            # df7.to_excel(writer, sheet_name = 'VALUATION FINANCIAL HEALTH', index=False)
+            # df8.to_excel(writer, sheet_name = 'VALUATION OPERATING EFFICIENCY', index=False)
+            # df4.to_excel(writer, sheet_name = 'DIVIDENDS', index=False)
+            # df9.to_excel(writer,sheet_name="OPERATING PERFORMANCE", index=False)
             writer.save()
             writer.close()
             
@@ -265,95 +355,6 @@ def scrape(request):
                     response = HttpResponse(file, content_type='application/vnd.ms-excel')
                     response['Content-Disposition'] = 'attachment; filename=stockData.xls'   
                     return response
-        else:
-             return render(request, "../templates/loadScreen.html")
-
-
-    elif 'get_data' in request.POST:
-        print("============================")
-        if download_type == "INCOME_STATEMENT" or download_type == "BALANCE_SHEET" or download_type == "CASH_FLOW":
-            CHROME_DRIVER_PATH = BASE_DIR+"/chromedriver"
-            prefs = {'download.default_directory' :  BASE_DIR}
-            chromeOptions = webdriver.ChromeOptions()
-            chromeOptions.add_experimental_option('prefs', prefs)
-            chromeOptions.add_argument('--headless')
-            chromeOptions.add_argument('--disable-setuid-sandbox')
-            chromeOptions.add_argument('--remote-debugging-port=9222')
-            chromeOptions.add_argument('--disable-extensions')
-            chromeOptions.add_argument('start-maximized')
-            chromeOptions.add_argument('--disable-gpu')
-            chromeOptions.add_argument('--no-sandbox')
-            chromeOptions.add_argument('--disable-dev-shm-usage')
-            # driver = webdriver.Chrome(executable_path=CHROME_DRIVER_PATH, chrome_options=chromeOptions)
-            driver = webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"), chrome_options=chromeOptions) 
-            driver.get(f"https://www.morningstar.com/stocks/{market_value}/{ticker_value}/financials")
-            if download_type == "INCOME_STATEMENT":
-                WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Income Statement')]"))).click()
-                WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//a[contains(., 'Expand Detail View')]"))).click()
-                WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Export Data')]"))).click()
-                sleep(10)
-                driver.quit()
-                return render(request, "../templates/loadScreen.html",{ "download_type": download_type})
-            elif download_type == "BALANCE_SHEET":
-                WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Balance Sheet')]"))).click()
-                WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//a[contains(., 'Expand Detail View')]"))).click()
-                WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Export Data')]"))).click()
-                sleep(10)
-                driver.quit()
-                return render(request, "../templates/loadScreen.html",{ "download_type": download_type})
-            elif download_type == "CASH_FLOW":
-                WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Cash Flow')]"))).click()
-                WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//a[contains(., 'Expand Detail View')]"))).click()
-                WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Export Data')]"))).click()
-                sleep(10)
-                driver.quit()
-                return render(request, "../templates/loadScreen.html",{ "download_type": download_type})
-            
-        elif download_type == "VALUATION_CASH_FLOW" or download_type == "VALUATION_GROWTH" or download_type == "VALUATION_FINANCIAL_HEALTH" or download_type == "VALUATION_OPERATING_EFFICIENCY":
-            task = scraper_valuation.delay(ticker_value=ticker_value, market_value=market_value, download_type=download_type)
-            return render(request, "../templates/loadScreen.html",{ "download_type": download_type,"task_id": task.id, "task_stat": task.status})
-        elif download_type =="DIVIDENDS":
-            task = scraper_dividends.delay(ticker_value=ticker_value, market_value=market_value)
-            return render(request, "../templates/loadScreen.html",{ "download_type": download_type,"task_id": task.id, "task_stat": task.status})
-        elif download_type == "OPERATING_PERFORMANCE":
-            task =scraper_operating_performance.delay(ticker_value=ticker_value, market_value=market_value)
-            return render(request, "../templates/loadScreen.html",{ "download_type": download_type,"task_id": task.id, "task_stat": task.status})
-        elif download_type == "ALL":
-            valuation_cash_flow_id = scraper_valuation.delay(ticker_value=ticker_value, market_value=market_value, download_type="VALUATION_CASH_FLOW")
-            valuation_growth_id = scraper_valuation.delay(ticker_value=ticker_value, market_value=market_value, download_type="VALUATION_GROWTH")
-            valuation_financial_health_id = scraper_valuation.delay(ticker_value=ticker_value, market_value=market_value, download_type="VALUATION_FINANCIAL_HEALTH")
-            valuation_operating_efficiency_id = scraper_valuation.delay(ticker_value=ticker_value, market_value=market_value, download_type="VALUATION_OPERATING_EFFICIENCY")
-            operating_performance_task_id = scraper_operating_performance.delay(ticker_value=ticker_value, market_value=market_value)
-            dividends_task_id = scraper_dividends.delay(ticker_value=ticker_value, market_value=market_value)
-            CHROME_DRIVER_PATH = BASE_DIR+"/chromedriver"
-            prefs = {'download.default_directory' :  BASE_DIR}
-            chromeOptions = webdriver.ChromeOptions()
-            chromeOptions.add_experimental_option('prefs', prefs)
-            chromeOptions.add_argument("--disable-infobars")
-            chromeOptions.add_argument("--start-maximized")
-            chromeOptions.add_argument("--disable-extensions")
-            chromeOptions.add_argument('--window-size=1920,1080')
-            chromeOptions.add_argument("--headless")
-            chromeOptions.add_argument('--no-sandbox')   
-            chromeOptions.add_argument("--disable-dev-shm-usage")
-            # driver = webdriver.Chrome(executable_path=CHROME_DRIVER_PATH, chrome_options=chromeOptions)
-            driver = webdriver.Chrome(  chrome_options=chromeOptions, executable_path=ChromeDriverManager().install()) 
-            driver.get(f"https://www.morningstar.com/stocks/{market_value}/{ticker_value}/financials")
-            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Income Statement')]"))).click()
-            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//a[contains(., 'Expand Detail View')]"))).click()
-            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Export Data')]"))).click()
-            sleep(5)
-            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Balance Sheet')]"))).click()
-            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Export Data')]"))).click()
-            sleep(5)
-            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Cash Flow')]"))).click()
-            WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Export Data')]"))).click()
-            sleep(5)
-            driver.quit()
-            return render(request, "../templates/load_screen_all.html",{ "download_type": download_type,"valuation_cash_flow_id": valuation_cash_flow_id,"valuation_growth_id": valuation_growth_id,
-            "valuation_financial_health_id":valuation_financial_health_id,"valuation_operating_efficiency_id":valuation_operating_efficiency_id,"operating_performance_task_id": operating_performance_task_id,
-             "dividends_task_id": dividends_task_id })
-        else:
-            return render(request, "../templates/stockData.html")
     else:
         return render(request, "../templates/stockData.html")
+       
