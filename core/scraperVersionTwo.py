@@ -157,7 +157,7 @@ def scrape(request):
                         response['Content-Disposition'] = 'attachment; filename=stockData.xls'   
                         return response
         elif download_type == "ALL":
-            data_xls = pd.read_excel(BASE_DIR + "/selenium/Balance Sheet_Annual_As Originally Reported.xls")
+            data_xls = pd.read_excel(BASE_DIR + "/Balance Sheet_Annual_As Originally Reported.xls")
             data_xls.to_json('balance_sheet_test.json')
             with open('balance_sheet_test.json', 'r') as file:
                         content = file.read()
@@ -169,7 +169,7 @@ def scrape(request):
                         df.to_excel('balance_sheet.xls',index=False)
                         df1 = pd.read_excel('balance_sheet.xls')
             
-            data_xls = pd.read_excel(BASE_DIR + "/selenium/Cash Flow_Annual_As Originally Reported.xls")
+            data_xls = pd.read_excel(BASE_DIR + "/Cash Flow_Annual_As Originally Reported.xls")
             data_xls.to_json('cash_flow_test.json')
             with open('cash_flow_test.json', 'r') as file:
                         content = file.read()
@@ -180,7 +180,7 @@ def scrape(request):
                         df = pd.DataFrame(data=jsont)
                         df.to_excel('cash_flow.xls',index=False)
                         df2 = pd.read_excel('cash_flow.xls')
-            data_xls = pd.read_excel(BASE_DIR + "/selenium/Income Statement_Annual_As Originally Reported.xls")
+            data_xls = pd.read_excel(BASE_DIR + "/Income Statement_Annual_As Originally Reported.xls")
             data_xls.to_json('income_statement_test.json')
             with open('income_statement_test.json', 'r') as file:
                         content = file.read()
@@ -260,16 +260,6 @@ def scrape(request):
             sleep(5)
             driver.quit()
             return render(request, "../templates/load_screen_all.html",{ "download_type": download_type})
-            # scraper.delay(ticker_value=ticker_value, market_value=market_value, download_type="INCOME_STATEMENT")
-            # scraper.delay(ticker_value=ticker_value, market_value=market_value, download_type="BALANCE_SHEET")
-            # scraper.delay(ticker_value=ticker_value, market_value=market_value, download_type="CASH_FLOW")
-            # scraper_valuation.delay(ticker_value=ticker_value, market_value=market_value, download_type="VALUATION_CASH_FLOW")
-            # scraper_valuation.delay(ticker_value=ticker_value, market_value=market_value, download_type="VALUATION_GROWTH")
-            # scraper_valuation.delay(ticker_value=ticker_value, market_value=market_value, download_type="VALUATION_FINANCIAL_HEALTH")
-            # scraper_valuation.delay(ticker_value=ticker_value, market_value=market_value, download_type="VALUATION_OPERATING_EFFICIENCY")
-            # scraper_operating_performance.delay(ticker_value=ticker_value, market_value=market_value)
-            # task = scraper_dividends.delay(ticker_value=ticker_value, market_value=market_value)
-            # return render(request, "../templates/load_screen_all.html",{ "download_type": download_type,"task_id": task.id, "task_stat": task.status})
         else:
             return render(request, "../templates/stockData.html")
     else:
