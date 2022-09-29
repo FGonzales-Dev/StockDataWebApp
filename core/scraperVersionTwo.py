@@ -128,11 +128,12 @@ def scrape(request):
                         response['Content-Disposition'] = 'attachment; filename=stockData.xls'   
                         return response
         elif download_type == "DIVIDENDS":
-               
-            res = AsyncResult(dividends_task_id).get()
             print("***********************")
+            print(task_id)
+            res = AsyncResult(task_id).get()
+           
             print(res)
-            print(dividends_task_id)
+           
             print("***********************")
             df = pd.read_json(res)
             df.to_excel('dividends.xls', index=False)
