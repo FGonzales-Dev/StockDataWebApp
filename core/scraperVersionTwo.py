@@ -129,17 +129,17 @@ def scrape(request):
                         return response
         elif download_type == "DIVIDENDS":
                
-            res = AsyncResult(task_id).get()
-            print("***********************")
-            print(task_id)
-            print(res)
-            print("***********************")
+            # res = AsyncResult(task_id).get()
+            # print("***********************")
+            # print(task_id)
+            # print(res)
+            # print("***********************")
             # df = pd.read_json(res)
             # df.to_excel('dividends.xls', index=False)
             # with open("dividends.xls", 'rb') as file:
             #     response = HttpResponse(file, content_type='application/vnd.ms-excel')
             #     response['Content-Disposition'] = 'attachment; filename=stockData.xls'   
-            return HttpResponse(res, content_type='text/json')
+            return HttpResponse("hello", content_type='text/json')
         elif download_type == "OPERATING_PERFORMANCE":
                 res = AsyncResult(task_id).get()
                 df = pd.read_json(res)
