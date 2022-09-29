@@ -130,6 +130,10 @@ def scrape(request):
         elif download_type == "DIVIDENDS":
                
             res = AsyncResult(task_id).get()
+            print("***********************")
+            print(task_id)
+            print(res)
+            print("***********************")
             df = pd.read_json(res)
             df.to_excel('dividends.xls', index=False)
             with open("dividends.xls", 'rb') as file:
