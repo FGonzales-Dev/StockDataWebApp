@@ -129,9 +129,9 @@ def scrape(request):
                         return response
         elif download_type == "DIVIDENDS":
                
-            # res = AsyncResult(task_id).get()
-            # print("***********************")
-            # print(task_id)
+            res = AsyncResult(task_id).get()
+            print("***********************")
+            print(res)
             # print(res)
             # print("***********************")
             # df = pd.read_json(res)
