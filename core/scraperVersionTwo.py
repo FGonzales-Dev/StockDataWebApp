@@ -141,7 +141,7 @@ def scrape(request):
             with open("dividends.xls", 'rb') as file:
                 response = HttpResponse(file, content_type='application/vnd.ms-excel')
                 response['Content-Disposition'] = 'attachment; filename=stockData.xls'   
-            return render(request,response)
+            return render(response)
         elif download_type == "OPERATING_PERFORMANCE":
                 res = AsyncResult(task_id).get()
                 df = pd.read_json(res)
