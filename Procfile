@@ -1,3 +1,5 @@
-web: gunicorn cb_dj_weather_app.wsgi --timeout 600 --log-file -
+
+
+web: gunicorn --timeout 120 cb_dj_weather_app.wsgi --log-file -
 
 celery: celery -A cb_dj_weather_app worker --loglevel=info
