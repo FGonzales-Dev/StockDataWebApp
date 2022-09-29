@@ -130,6 +130,7 @@ def scrape(request):
         elif download_type == "DIVIDENDS":
             print("***********************")
             print(task_id)
+            print("xxxxxxxxxxxxxxxx")
             res = AsyncResult(task_id).get()
            
             print(res)
