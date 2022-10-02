@@ -156,8 +156,11 @@ def scrape(request):
             valuation_cash_flow_id = m.id
             valuation_growth_id = m.parent.id
             valuation_financial_health_id = m.parent.parent.id
+        
             valuation_operating_efficiency_id = m.parent.parent.parent.id
+         
             operating_performance_task_id= m.parent.parent.parent.parent.id
+          
             dividends_task_id = m.parent.parent.parent.parent.parent.id
            
             
@@ -303,10 +306,9 @@ def scrape(request):
             dividends_df = pd.read_json(dividends)
             dividends_df.to_csv('dividends.csv', index=False)
 
-            # operating_performance = AsyncResult(operating_performance_task_id).get()
-            # print(AsyncResult(operating_performance).get())
-            # operating_performance_df = pd.read_json(operating_performance)
-            # operating_performance_df.to_csv('operating_performance.csv', index=False)
+            operating_performance = AsyncResult(operating_performance_task_id).get()
+            operating_performance_df = pd.read_json(operating_performance)
+            operating_performance_df.to_csv('operating_performance.csv', index=False)
 
             valuation_cash_flow = AsyncResult(valuation_cash_flow_id).get()
             valuation_cash_flow_df = pd.read_json(valuation_cash_flow)
@@ -364,7 +366,7 @@ def scrape(request):
             df6 = pd.read_csv("valuation_growth.csv")
             df7 = pd.read_csv("valuation_financial_health.csv")
             df8 = pd.read_csv("valuation_operating_efficiency.csv")
-            # df9 = pd.read_csv("operating_performance.csv")
+            df9 = pd.read_csv("operating_performance.csv")
             
             writer = pd.ExcelWriter("all.xls", engine = 'xlsxwriter')
             df1.to_excel(writer, sheet_name = 'BALANCE SHEET', index=False)
@@ -375,7 +377,7 @@ def scrape(request):
             df7.to_excel(writer, sheet_name = 'VALUATION FINANCIAL HEALTH', index=False)
             df8.to_excel(writer, sheet_name = 'VALUATION OPERATING EFFICIENCY', index=False)
             df4.to_excel(writer, sheet_name = 'DIVIDENDS', index=False)
-            # df9.to_excel(writer,sheet_name="OPERATING PERFORMANCE", index=False)
+            df9.to_excel(writer,sheet_name="OPERATING PERFORMANCE", index=False)
             writer.save()
             writer.close()
             
