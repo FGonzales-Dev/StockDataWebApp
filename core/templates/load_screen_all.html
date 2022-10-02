@@ -43,12 +43,12 @@
             {% csrf_token %}
             <div class="container">
                 <input type="text" name="download_type" value={{download_type}} style="visibility: hidden;" />
-                <!-- <input type="text" name="valuation_cash_flow_id" value={{valuation_cash_flow_id}} style="visibility: hidden;" />
+                <input type="text" name="valuation_cash_flow_id" value={{valuation_cash_flow_id}} style="visibility: hidden;" />
                 <input type="text" name="valuation_growth_id" value={{valuation_growth_id}} style="visibility: hidden;" />
-                <input type="text" name="valuation_financial_health_id" value={{valuation_financial_health_id}} style="visibility: hidden;" />
-                <input type="text" name="valuation_operating_efficiency_id" value={{valuation_operating_efficiency_id}} style="visibility: hidden;" />
-                <input type="text" name="operating_performance_task_id" value={{operating_performance_task_id}} style="visibility: hidden;" />
-                <input type="text" name="dividends_task_id" value={{dividends_task_id}} style="visibility: hidden;" /> -->
+                <input type="text" name="valuation_financial_health_id" value={{valuation_financial_health_id}}  style="visibility: hidden;"/>
+                <input type="text" name="valuation_operating_efficiency_id" value={{valuation_operating_efficiency_id}} style="visibility: hidden;"/>
+                <input type="text" name="operating_performance_task_id" value={{operating_performance_task_id}} style="visibility: hidden;"/>
+                <input type="text" name="dividends_task_id" value={{dividends_task_id}} style="visibility: hidden;"/> 
 
                 
               
@@ -83,12 +83,12 @@
         setTimeout(() => {
             const box = document.getElementById('spinner-div');
             box.style.visibility = 'hidden';
-        },  10000);
+        },  100000);
 
         setTimeout(() => {
             const btn = document.getElementById('download-btn');
             btn.style.visibility = 'visible'
-        }, 10000);
+        }, 100000);
     </script>
 
 

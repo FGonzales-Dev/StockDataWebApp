@@ -51,13 +51,7 @@ from .tasks import *
 from celery.result import AsyncResult
 from celery import chain, chord,group
 
-valuation_cash_flow_id: None
-valuation_growth_id: None
-valuation_financial_health_id : None
-valuation_operating_efficiency_id : None
-operating_performance_task_id : None
-dividends_task_id : None
-result_task : None
+
 
 def get_task_info(request):
     task_id = request.GET.get('task_id', None)
@@ -84,10 +78,13 @@ def scrape(request):
     market_value =  request.POST.get("market", "")
     download_type = request.POST.get("download_type", "")
     task_id = request.POST.get("task_id", "")
-   
-   
-
-
+    dividends_task_id = request.POST.get("dividends_task_id", "")
+    operating_performance_task_id = request.POST.get("operating_performance_task_id", "")
+    valuation_cash_flow_id = request.POST.get("valuation_cash_flow_id", "")
+    valuation_growth_id = request.POST.get("valuation_growth_id", "")
+    valuation_financial_health_id = request.POST.get("valuation_financial_health_id", "")
+    valuation_operating_efficiency_id = request.POST.get("valuation_operating_efficiency_id", "")
+    
     if 'get_data' in request.POST:
         print("============================")
         if download_type == "INCOME_STATEMENT" or download_type == "BALANCE_SHEET" or download_type == "CASH_FLOW":
@@ -139,26 +136,32 @@ def scrape(request):
         elif download_type == "ALL":
             
             
-            global result_task
-            global operating_performance_task_id
-            global dividends_task_id
-            global valuation_cash_flow_id
-            global valuation_growth_id
-            global valuation_financial_health_id 
-            global valuation_operating_efficiency_id 
+      
 
 
-            valuation_cash_flow_id = scraper_valuation.si(ticker_value=ticker_value, market_value=market_value, download_type="VALUATION_CASH_FLOW").delay()
-            valuation_growth_id = scraper_valuation.si(ticker_value=ticker_value, market_value=market_value, download_type="VALUATION_GROWTH").delay()
-            valuation_financial_health_id = scraper_valuation.si(ticker_value=ticker_value, market_value=market_value, download_type="VALUATION_FINANCIAL_HEALTH").delay()
-            valuation_operating_efficiency_id = scraper_valuation.si(ticker_value=ticker_value, market_value=market_value, download_type="VALUATION_OPERATING_EFFICIENCY").delay() 
-            operating_performance_task_id= scraper_operating_performance.si(ticker_value=ticker_value, market_value=market_value).delay()
-            dividends_task_id = scraper_dividends.si(ticker_value=ticker_value, market_value=market_value).delay()
+            
+         
+         
+            res = chain(scraper_dividends.si(ticker_value=ticker_value, market_value=market_value),
+            scraper_operating_performance.si(ticker_value=ticker_value, market_value=market_value),
+            scraper_valuation.si(ticker_value=ticker_value, market_value=market_value, download_type="VALUATION_OPERATING_EFFICIENCY"),
+            scraper_valuation.si(ticker_value=ticker_value, market_value=market_value, download_type="VALUATION_FINANCIAL_HEALTH"),
+            scraper_valuation.si(ticker_value=ticker_value, market_value=market_value, download_type="VALUATION_GROWTH"),
+            scraper_valuation.si(ticker_value=ticker_value, market_value=market_value, download_type="VALUATION_CASH_FLOW"))
 
-            tasks = [operating_performance_task_id, dividends_task_id,valuation_cash_flow_id,valuation_growth_id,valuation_financial_health_id,valuation_operating_efficiency_id]
-            for task in tasks:
-                print(task)
-                task.wait()
+
+
+            m = res.apply_async()
+
+            valuation_cash_flow_id = m.id
+            valuation_growth_id = m.parent.id
+            valuation_financial_health_id = m.parent.parent.id
+            valuation_operating_efficiency_id = m.parent.parent.parent.id
+            operating_performance_task_id= m.parent.parent.parent.parent.id
+            dividends_task_id = m.parent.parent.parent.parent.parent.id
+           
+            
+          
            
             CHROME_DRIVER_PATH = BASE_DIR+"/chromedriver"
             prefs = {'download.default_directory' :  BASE_DIR}
@@ -185,12 +188,21 @@ def scrape(request):
             WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, "//button[contains(., 'Export Data')]"))).click()
             sleep(5)
             driver.quit()
-            return render(request, "../templates/load_screen_all.html",{ "download_type": download_type,"operating_performance_task_id": operating_performance_task_id.id,
-            "dividends_task_id": dividends_task_id.id,
-            "valuation_cash_flow_id": valuation_cash_flow_id.id, 
-            "valuation_growth_id": valuation_growth_id.id ,
-            "valuation_financial_health_id": valuation_financial_health_id.id,
-            "valuation_operating_efficiency_id": valuation_operating_efficiency_id.id})
+
+           
+
+            return render(request, "../templates/load_screen_all.html",{ "download_type": download_type,
+            "valuation_cash_flow_id": valuation_cash_flow_id,
+           "valuation_growth_id": valuation_growth_id,
+           "valuation_financial_health_id": valuation_financial_health_id,
+           "valuation_operating_efficiency_id": valuation_operating_efficiency_id,
+           "operating_performance_task_id": operating_performance_task_id,
+           "dividends_task_id": dividends_task_id,
+
+
+            })
+
+
 
     elif 'download' in request.POST:
         if download_type == "INCOME_STATEMENT": 
@@ -289,27 +301,28 @@ def scrape(request):
         elif download_type == "ALL":
             dividends = AsyncResult(dividends_task_id).get()
             dividends_df = pd.read_json(dividends)
-            dividends_df.to_excel('dividends.xls', index=False)
+            dividends_df.to_csv('dividends.csv', index=False)
 
             operating_performance = AsyncResult(operating_performance_task_id).get()
+            print(AsyncResult(operating_performance).get())
             operating_performance_df = pd.read_json(operating_performance)
-            operating_performance_df.to_excel('operating_performance.xls', index=False)
+            operating_performance_df.to_csv('operating_performance.csv', index=False)
 
-            valuation_cash_flow = AsyncResult(valuation_cash_flow_id).get()
-            valuation_cash_flow_df = pd.read_json(valuation_cash_flow)
-            valuation_cash_flow_df.to_excel('valuation_cash_flow.xls', index=False)
+            # valuation_cash_flow = AsyncResult(valuation_cash_flow_id).get()
+            # valuation_cash_flow_df = pd.read_json(valuation_cash_flow)
+            # valuation_cash_flow_df.to_csv('valuation_cash_flow.csv', index=False)
 
-            valuation_growth = AsyncResult(valuation_growth_id).get()
-            valuation_growth_df = pd.read_json(valuation_growth)
-            valuation_growth_df.to_excel('valuation_growth.xls', index=False)
+            # valuation_growth = AsyncResult(valuation_growth_id).get()
+            # valuation_growth_df = pd.read_json(valuation_growth)
+            # valuation_growth_df.to_csv('valuation_growth.csv', index=False)
             
-            valuation_financial_health = AsyncResult(valuation_financial_health_id).get()
-            valuation_financial_health_df = pd.read_json(valuation_financial_health)
-            valuation_financial_health_df.to_excel('valuation_financial_health.xls', index=False)
+            # valuation_financial_health = AsyncResult(valuation_financial_health_id).get()
+            # valuation_financial_health_df = pd.read_json(valuation_financial_health)
+            # valuation_financial_health_df.to_csv('valuation_financial_health.csv', index=False)
 
-            valuation_operating_efficiency = AsyncResult(valuation_operating_efficiency_id).get()
-            valuation_operating_efficiency_df = pd.read_json(valuation_operating_efficiency)
-            valuation_operating_efficiency_df.to_excel('valuation_operating_efficiency.xls', index=False)
+            # valuation_operating_efficiency = AsyncResult(valuation_operating_efficiency_id).get()
+            # valuation_operating_efficiency_df = pd.read_json(valuation_operating_efficiency)
+            # valuation_operating_efficiency_df.to_csv('valuation_operating_efficiency.csv', index=False)
 
             data_xls = pd.read_excel(BASE_DIR + "/Balance Sheet_Annual_As Originally Reported.xls")
             data_xls.to_json('balance_sheet_test.json')
@@ -320,8 +333,8 @@ def scrape(request):
                         file = json.dumps(json_data)
                         jsont = json.loads(file)
                         df = pd.DataFrame(data=jsont)
-                        df.to_excel('balance_sheet.xls',index=False)
-                        df1 = pd.read_excel('balance_sheet.xls')
+                        df.to_csv('balance_sheet.csv',index=False)
+                        df1 = pd.read_csv('balance_sheet.csv')
             
             data_xls = pd.read_excel(BASE_DIR + "/Cash Flow_Annual_As Originally Reported.xls")
             data_xls.to_json('cash_flow_test.json')
@@ -332,8 +345,9 @@ def scrape(request):
                         file = json.dumps(json_data)
                         jsont = json.loads(file)
                         df = pd.DataFrame(data=jsont)
-                        df.to_excel('cash_flow.xls',index=False)
-                        df2 = pd.read_excel('cash_flow.xls')
+                        df.to_csv('cash_flow.csv',index=False)
+                        df2 = pd.read_csv('cash_flow.csv')
+
             data_xls = pd.read_excel(BASE_DIR + "/Income Statement_Annual_As Originally Reported.xls")
             data_xls.to_json('income_statement_test.json')
             with open('income_statement_test.json', 'r') as file:
@@ -343,23 +357,23 @@ def scrape(request):
                         file = json.dumps(json_data)
                         jsont = json.loads(file)
                         df = pd.DataFrame(data=jsont)
-                        df.to_excel('income_statement.xls',index=False)
-                        df3 = pd.read_excel('income_statement.xls')
-            df4 = pd.read_excel("dividends.xls")
-            df5 = pd.read_excel("valuation_cash_flow.xls")
-            df6 = pd.read_excel("valuation_growth.xls")
-            df7 = pd.read_excel("valuation_financial_health.xls")
-            df8 = pd.read_excel("valuation_operating_efficiency.xls")
-            df9 = pd.read_excel("operating_performance.xls")
+                        df.to_csv('income_statement.csv',index=False)
+                        df3 = pd.read_csv('income_statement.csv')
+            df4 = pd.read_csv("dividends.csv")
+            # df5 = pd.read_csv("valuation_cash_flow.csv")
+            # df6 = pd.read_csv("valuation_growth.csv")
+            # df7 = pd.read_csv("valuation_financial_health.csv")
+            # df8 = pd.read_csv("valuation_operating_efficiency.csv")
+            df9 = pd.read_csv("operating_performance.csv")
             
             writer = pd.ExcelWriter("all.xls", engine = 'xlsxwriter')
             df1.to_excel(writer, sheet_name = 'BALANCE SHEET', index=False)
             df2.to_excel(writer, sheet_name = 'CASH FLOW', index=False)
             df3.to_excel(writer, sheet_name = 'INCOME STATEMENT', index=False)
-            df5.to_excel(writer, sheet_name = 'VALUATION CASH FLOW', index=False)
-            df6.to_excel(writer, sheet_name = 'VALUATION GROWTH', index=False)
-            df7.to_excel(writer, sheet_name = 'VALUATION FINANCIAL HEALTH', index=False)
-            df8.to_excel(writer, sheet_name = 'VALUATION OPERATING EFFICIENCY', index=False)
+            # df5.to_excel(writer, sheet_name = 'VALUATION CASH FLOW', index=False)
+            # df6.to_excel(writer, sheet_name = 'VALUATION GROWTH', index=False)
+            # df7.to_excel(writer, sheet_name = 'VALUATION FINANCIAL HEALTH', index=False)
+            # df8.to_excel(writer, sheet_name = 'VALUATION OPERATING EFFICIENCY', index=False)
             df4.to_excel(writer, sheet_name = 'DIVIDENDS', index=False)
             df9.to_excel(writer,sheet_name="OPERATING PERFORMANCE", index=False)
             writer.save()
